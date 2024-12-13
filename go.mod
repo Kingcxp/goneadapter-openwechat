@@ -8,6 +8,7 @@ require github.com/gonebot-dev/gonebot v1.1.6
 
 require (
 	github.com/eatmoreapple/openwechat v1.4.8
+	github.com/gonebot-dev/goneplugin-echo v0.1.1
 	github.com/gonebot-dev/goneplugin-status v0.1.1
 	github.com/rs/zerolog v1.33.0
 )
