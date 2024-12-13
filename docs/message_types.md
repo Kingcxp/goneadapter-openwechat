@@ -40,6 +40,7 @@ type RealtimeLocationStopType struct {}
 好友添加信息，提供如下字段：
 ```go
 type FriendAddType struct {
+	NickName string              `json:"NickName"`
 	UserName string              `json:"UserName"`
 	WechatID string              `json:"wechat_id"`
 	Sex      string              `json:"sex"`
@@ -54,6 +55,7 @@ type FriendAddType struct {
 名片信息，提供如下字段：
 ```go
 type CardType struct {
+	NickName string `json:"NickName"`
 	UserName string `json:"UserName"`
 	WechatID string `json:"wechat_id"`
 	Sex      string `json:"sex"`

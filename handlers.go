@@ -102,6 +102,7 @@ func receiveHandler(msg *openwechat.Message) {
 			sex = "未知"
 		}
 		formatMsg.Any(FriendAddType{
+			NickName: addmsg.FromNickName,
 			UserName: addmsg.FromUserName,
 			WechatID: addmsg.Alias,
 			Sex:      sex,
@@ -127,6 +128,7 @@ func receiveHandler(msg *openwechat.Message) {
 			sex = "未知"
 		}
 		formatMsg.Any(CardType{
+			NickName: cardmsg.NickName,
 			UserName: cardmsg.UserName,
 			Sex:      sex,
 			WechatID: cardmsg.Alias,
