@@ -15,3 +15,8 @@
 	  <img src="https://img.shields.io/github/license/gonebot-dev/gonebot.svg?colorB=f48041&style=flat-square" alt="license" />
 	</a>
 </div>
+
+#### 适配器文档:
+- [行为](./docs/actions.md)
+- [事件](./docs/events.md)
+- [消息类型](./docs/message_types.md)
