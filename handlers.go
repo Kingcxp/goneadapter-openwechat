@@ -28,29 +28,31 @@ func actionHandler() {
 func receiveHandler(msg *openwechat.Message) {
 	formatMsg := message.NewMessage()
 	formatMsg.Group = ""
-	formatMsg.Self = Self.NickName
+	formatMsg.Self = Self.UserName
+	from := "friend"
 	if msg.IsSendByFriend() {
 		formatMsg.IsToMe = true
 		sender, _ := msg.Sender()
 		receiver, _ := msg.Receiver()
-		formatMsg.Sender = sender.NickName
-		formatMsg.Receiver = receiver.NickName
-		formatMsg.Group = ""
+		formatMsg.Sender = sender.UserName
+		formatMsg.Receiver = receiver.UserName
 	} else if msg.IsSendByGroup() {
-		group, _ := msg.Sender()
+		from = "group"
+		groupUser, _ := msg.Sender()
 		sender, _ := msg.SenderInGroup()
-		formatMsg.Group = openwechat.Group{User: group}.NickName
-		formatMsg.Sender = sender.NickName
+		group, _ := groupUser.AsGroup()
+		formatMsg.Group = group.UserName
+		formatMsg.Sender = sender.UserName
 	}
 	if msg.IsText() {
 		msg.AsRead()
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received text message: %s", msg.Content)
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s text message: %s", from, msg.Content)
 		if msg.IsAt() && msg.ToUserName == Self.UserName {
 			formatMsg.IsToMe = true
 		}
 		formatMsg.Text(msg.Content)
 	} else if msg.IsPicture() || msg.IsEmoticon() {
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received picture message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s picture message.", from)
 		msg.AsRead()
 		response, err := msg.GetPicture()
 		if err != nil {
@@ -66,26 +68,26 @@ func receiveHandler(msg *openwechat.Message) {
 		formatMsg.Image(base64Encoding)
 	} else if msg.IsLocation() {
 		// Cannot get location info from location message
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received location message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s location message.", from)
 		msg.AsRead()
 		formatMsg.Any(LocationType{})
 	} else if msg.IsRealtimeLocationStart() {
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received realtime location start message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s realtime location start message.", from)
 		msg.AsRead()
 		formatMsg.Any(RealtimeLocationStartType{})
 	} else if msg.IsRealtimeLocationStop() {
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received realtime location stop message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s realtime location stop message.", from)
 		msg.AsRead()
 		formatMsg.Any(RealtimeLocationStopType{})
 	} else if msg.IsVoice() {
 		// Just to base64
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received voice message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s voice message.", from)
 		msg.AsRead()
 		response, _ := msg.GetVoice()
 		voi, _ := io.ReadAll(response.Body)
 		formatMsg.Voice(base64.StdEncoding.EncodeToString(voi))
 	} else if msg.IsFriendAdd() {
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received friend add message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s friend add message.", from)
 		addmsg, err := msg.FriendAddMessageContent()
 		if err != nil {
 			logging.Logf(zerolog.ErrorLevel, "OpenWechat", "receiveHandler: Read friend add message error: %s", err.Error())
@@ -100,7 +102,7 @@ func receiveHandler(msg *openwechat.Message) {
 			sex = "未知"
 		}
 		formatMsg.Any(FriendAddType{
-			NickName: addmsg.FromNickName,
+			UserName: addmsg.FromUserName,
 			WechatID: addmsg.Alias,
 			Sex:      sex,
 			Country:  addmsg.Country,
@@ -108,12 +110,12 @@ func receiveHandler(msg *openwechat.Message) {
 			City:     addmsg.City,
 			Msg:      msg,
 		})
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received friend add message: %s", FriendAddType{}.ToRawText(formatMsg.GetSegments()[0]))
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s friend add message: %s", from, FriendAddType{}.ToRawText(formatMsg.GetSegments()[0]))
 	} else if msg.IsCard() {
 		msg.AsRead()
 		cardmsg, err := msg.Card()
 		if err != nil {
-			logging.Logf(zerolog.ErrorLevel, "OpenWechat", "receiveHandler: Read card message error: %s", err.Error())
+			logging.Logf(zerolog.ErrorLevel, "OpenWechat", "receiveHandler: Read %s card message error: %s", from, err.Error())
 			return
 		}
 		var sex string
@@ -125,17 +127,17 @@ func receiveHandler(msg *openwechat.Message) {
 			sex = "未知"
 		}
 		formatMsg.Any(CardType{
-			NickName: cardmsg.NickName,
+			UserName: cardmsg.UserName,
 			Sex:      sex,
 			WechatID: cardmsg.Alias,
 			Province: cardmsg.Province,
 			City:     cardmsg.City,
 		})
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received card message: %s", CardType{}.ToRawText(formatMsg.GetSegments()[0]))
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s card message: %s", from, CardType{}.ToRawText(formatMsg.GetSegments()[0]))
 	} else if msg.IsVideo() {
 		// ? To fetch the video here is really a bad idea.
 		// * So we just put the msg string here.
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received video message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s video message.", from)
 		msg.AsRead()
 		formatMsg.Video(msg.String())
 	} else if msg.IsRecalled() {
@@ -149,16 +151,16 @@ func receiveHandler(msg *openwechat.Message) {
 			Recaller:   formatMsg.Sender,
 			ReplaceMsg: revokemsg.RevokeMsg.ReplaceMsg,
 		})
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received recall message: %s", RecallType{}.ToRawText(formatMsg.GetSegments()[0]))
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s recall message: %s", from, RecallType{}.ToRawText(formatMsg.GetSegments()[0]))
 	} else if msg.IsSystem() {
 		logging.Log(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Ignored system message.")
 		return
 	} else if msg.IsTransferAccounts() {
-		logging.Log(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received transfer accounts message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s transfer accounts message.", from)
 		msg.AsRead()
 		formatMsg.Any(TransferType{})
 	} else if msg.IsReceiveRedPacket() {
-		logging.Log(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received receive red packet message.")
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s receive red packet message.", from)
 		msg.AsRead()
 		formatMsg.Any(RedPacketType{})
 	} else if msg.IsTickled() {
@@ -168,7 +170,10 @@ func receiveHandler(msg *openwechat.Message) {
 		formatMsg.Any(TickleType{
 			Msg: msg.Content,
 		})
-		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received tickle message: %s", TickleType{}.ToRawText(formatMsg.GetSegments()[0]))
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received %s tickle message: %s", from, TickleType{}.ToRawText(formatMsg.GetSegments()[0]))
+	} else if msg.IsJoinGroup() {
+		formatMsg.Any(JoinGroupType{})
+		logging.Logf(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Received join group message: %s", TickleType{}.ToRawText(formatMsg.GetSegments()[0]))
 	} else {
 		logging.Log(zerolog.InfoLevel, "OpenWechat", "receiveHandler: Ignored unknown message.")
 		return
@@ -184,15 +189,16 @@ func isBase64Img(str string) bool {
 	return strings.HasPrefix(str, "base64://")
 }
 
-func sendImageToFriend(friendNickName string, img message.ImageType) {
+func sendImageToFriend(friendUserName string, img message.ImageType) {
 	friends, err := Self.Friends()
 	if err != nil {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToFriend: Unable to get friends: %s", err.Error())
 		return
 	}
-	friend := friends.SearchByNickName(1, friendNickName).First()
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendImageToFriend: Image to friend %s.", friendUserName)
+	friend := friends.SearchByUserName(1, friendUserName).First()
 	if friend == nil {
-		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToFriend: Friend %s not found.", friendNickName)
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToFriend: Friend %s not found.", friendUserName)
 		return
 	}
 	_, err = os.Stat(img.File)
@@ -222,15 +228,16 @@ func sendImageToFriend(friendNickName string, img message.ImageType) {
 	}
 }
 
-func sendImageToGroup(groupNickName string, img message.ImageType) {
+func sendImageToGroup(groupUserName string, img message.ImageType) {
 	groups, err := Self.Groups()
 	if err != nil {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToGroup: Unable to get groups: %s", err.Error())
 		return
 	}
-	group := groups.SearchByNickName(1, groupNickName).First()
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendImageToFriend: Image to friend %s: %s", groupUserName)
+	group := groups.SearchByUserName(1, groupUserName).First()
 	if group == nil {
-		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToGroup: Group %s not found.", groupNickName)
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToGroup: Group %s not found.", groupUserName)
 		return
 	}
 	_, err = os.Stat(img.File)
@@ -259,15 +266,16 @@ func sendImageToGroup(groupNickName string, img message.ImageType) {
 	}
 }
 
-func sendFileToFriend(friendNickName string, f message.FileType) {
+func sendFileToFriend(friendUserName string, f message.FileType) {
 	friends, err := Self.Friends()
 	if err != nil {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToFriend: Unable to get friends: %s", err.Error())
 		return
 	}
-	friend := friends.SearchByNickName(1, friendNickName).First()
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendFileToFriend: File to friend %s.", friendUserName)
+	friend := friends.SearchByUserName(1, friendUserName).First()
 	if friend == nil {
-		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToFriend: Friend %s not found.", friendNickName)
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToFriend: Friend %s not found.", friendUserName)
 		return
 	}
 	_, err = os.Stat(f.File)
@@ -288,15 +296,16 @@ func sendFileToFriend(friendNickName string, f message.FileType) {
 	}
 }
 
-func sendFileToGroup(groupNickName string, f message.FileType) {
+func sendFileToGroup(groupUserName string, f message.FileType) {
 	groups, err := Self.Groups()
 	if err != nil {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToGroup: Unable to get groups: %s", err.Error())
 		return
 	}
-	group := groups.SearchByNickName(1, groupNickName).First()
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendFileToGroup: File to friend %s.", groupUserName)
+	group := groups.SearchByUserName(1, groupUserName).First()
 	if group == nil {
-		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToGroup: Group %s not found.", groupNickName)
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToGroup: Group %s not found.", groupUserName)
 		return
 	}
 	_, err = os.Stat(f.File)
@@ -317,31 +326,31 @@ func sendFileToGroup(groupNickName string, f message.FileType) {
 	}
 }
 
-func sendTextToFriend(friendNickName string, text string) {
+func sendTextToFriend(friendUserName string, text string) {
 	friends, err := Self.Friends()
 	if err != nil {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToFriend: Unable to get friends: %s", err.Error())
 		return
 	}
-	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendTextToFriend: Text to friend %s: %s", friendNickName, text)
-	friend := friends.SearchByNickName(1, friendNickName).First()
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendTextToFriend: Text to friend %s: %s", friendUserName, text)
+	friend := friends.SearchByUserName(1, friendUserName).First()
 	if friend == nil {
-		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToFriend: Friend %s not found.", friendNickName)
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToFriend: Friend %s not found.", friendUserName)
 		return
 	}
 	friend.SendText(text)
 }
 
-func sendTextToGroup(groupNickName string, text string) {
+func sendTextToGroup(groupUserName string, text string) {
 	groups, err := Self.Groups()
 	if err != nil {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToGroup: Unable to get groups: %s", err.Error())
 		return
 	}
-	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendTextToGroup: Text to group %s: %s", groupNickName, text)
-	group := groups.SearchByNickName(1, groupNickName).First()
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendTextToGroup: Text to group %s: %s", groupUserName, text)
+	group := groups.SearchByUserName(1, groupUserName).First()
 	if group == nil {
-		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToGroup: Group %s not found.", groupNickName)
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToGroup: Group %s not found.", groupUserName)
 		return
 	}
 	group.SendText(text)

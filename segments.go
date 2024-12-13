@@ -50,7 +50,7 @@ func (rls RealtimeLocationStopType) ToRawText(msg message.MessageSegment) string
 }
 
 type FriendAddType struct {
-	NickName string              `json:"nickname"`
+	UserName string              `json:"UserName"`
 	WechatID string              `json:"wechat_id"`
 	Sex      string              `json:"sex"`
 	Country  string              `json:"country"`
@@ -69,11 +69,11 @@ func (fa FriendAddType) TypeName() string {
 
 func (fa FriendAddType) ToRawText(msg message.MessageSegment) string {
 	result := msg.Data.(FriendAddType)
-	return fmt.Sprintf("[OpenWechat:friend_add,nickname=%s,sex=%s,country=%s,province=%s,city=%s]", result.NickName, result.Sex, result.Country, result.Province, result.City)
+	return fmt.Sprintf("[OpenWechat:friend_add,UserName=%s,sex=%s,country=%s,province=%s,city=%s]", result.UserName, result.Sex, result.Country, result.Province, result.City)
 }
 
 type CardType struct {
-	NickName string `json:"nickname"`
+	UserName string `json:"UserName"`
 	WechatID string `json:"wechat_id"`
 	Sex      string `json:"sex"`
 	Province string `json:"province"`
@@ -90,7 +90,7 @@ func (card CardType) TypeName() string {
 
 func (card CardType) ToRawText(msg message.MessageSegment) string {
 	result := msg.Data.(CardType)
-	return fmt.Sprintf("[OpenWechat:card,nickname=%s,sex=%s,province=%s,city=%s]", result.NickName, result.Sex, result.Province, result.City)
+	return fmt.Sprintf("[OpenWechat:card,UserName=%s,sex=%s,province=%s,city=%s]", result.UserName, result.Sex, result.Province, result.City)
 }
 
 type RecallType struct {
@@ -153,4 +153,18 @@ func (tickle TickleType) TypeName() string {
 
 func (tickle TickleType) ToRawText(msg message.MessageSegment) string {
 	return fmt.Sprintf("[OpenWechat:tickle,msg=%s]", tickle.Msg)
+}
+
+type JoinGroupType struct{}
+
+func (joinGroup JoinGroupType) AdapterName() string {
+	return OpenWechat.Name
+}
+
+func (joinGroup JoinGroupType) TypeName() string {
+	return "join_group"
+}
+
+func (joinGroup JoinGroupType) ToRawText(msg message.MessageSegment) string {
+	return fmt.Sprintf("[OpenWechat:join_group]")
 }

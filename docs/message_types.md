@@ -10,6 +10,7 @@
 - [转账消息](#transfertype)
 - [红包消息](#redpackettype)
 - [戳一戳消息](#tickletype)
+- [入群消息](#joingrouptype)
 
 
 **注意：OpenWechat 在收到消息时涉及了这些消息段类型，但你不应当在回复消息时使用它们，OpenWechat 并不支持这些消息类型的发送**
@@ -39,7 +40,7 @@ type RealtimeLocationStopType struct {}
 好友添加信息，提供如下字段：
 ```go
 type FriendAddType struct {
-	NickName string              `json:"nickname"`
+	UserName string              `json:"UserName"`
 	WechatID string              `json:"wechat_id"`
 	Sex      string              `json:"sex"`
 	Country  string              `json:"country"`
@@ -53,7 +54,7 @@ type FriendAddType struct {
 名片信息，提供如下字段：
 ```go
 type CardType struct {
-	NickName string `json:"nickname"`
+	UserName string `json:"UserName"`
 	WechatID string `json:"wechat_id"`
 	Sex      string `json:"sex"`
 	Province string `json:"province"`
@@ -88,4 +89,10 @@ type RedPacketType struct{}
 type TickleType struct {
 	Msg string `json:"msg"`
 }
+```
+
+### JoinGroupType
+入群消息，无法获知具体内容
+```go
+type JoinGroupType struct {}
 ```
