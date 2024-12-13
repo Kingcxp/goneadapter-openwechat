@@ -80,6 +80,9 @@ func start() {
 	logging.Logf(zerolog.InfoLevel, "OpenWechat", "Login successful!")
 	Self, _ = bot.GetCurrentUser()
 
+	go sendHandler()
+	go actionHandler()
+
 	// Block until finish
 	bot.Block()
 }

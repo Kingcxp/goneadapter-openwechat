@@ -12,8 +12,8 @@ github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 h1:DACJavvAHhabrF0
 github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0/go.mod h1:E/TSTwGwJL78qG/PmXZO1EjYhfJinVAhrmmHX6Z8B9k=
 github.com/gonebot-dev/gonebot v1.1.5 h1:PCDkYxK8uvbGDLVMpM30pNpF2fxVgwXeMK5yRWeCmPA=
 github.com/gonebot-dev/gonebot v1.1.5/go.mod h1:sj8o76wPUPtS6bQanWmV8ZgBIrXAYgBfE5OQN1hkouo=
-github.com/gonebot-dev/goneplugin-echo v0.1.1 h1:YXBw7B8+2RWx5WAk5JHGno4sjio5PzBENwBILznchY0=
-github.com/gonebot-dev/goneplugin-echo v0.1.1/go.mod h1:S4UWtQ20fn1G+WaBr1BdakfMH32la2ooims9z7nFN2g=
+github.com/gonebot-dev/gonebot v1.1.6 h1:XgGJwbX91AWcnv+ceGtT3/eO3367QHVOx7zH79qkGas=
+github.com/gonebot-dev/gonebot v1.1.6/go.mod h1:sj8o76wPUPtS6bQanWmV8ZgBIrXAYgBfE5OQN1hkouo=
 github.com/gonebot-dev/goneplugin-status v0.1.1 h1:IcunOzi8pdpkNLM5YbFiy4LUXhyUwySOfTCH25lI7qg=
 github.com/gonebot-dev/goneplugin-status v0.1.1/go.mod h1:uexV8ft1rdoMRAhfsGmVb1ZhAvNClRPtt0OMrYVm33s=
 github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=

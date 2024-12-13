@@ -6,4 +6,4 @@
 # Testing
 test/
 
-gonebot_test.go
+.env

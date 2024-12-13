@@ -3,10 +3,10 @@ package openwechat
 import (
 	"bytes"
 	"encoding/base64"
+	"image"
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/eatmoreapple/openwechat"
@@ -28,7 +28,7 @@ func actionHandler() {
 func receiveHandler(msg *openwechat.Message) {
 	formatMsg := message.NewMessage()
 	formatMsg.Group = ""
-	formatMsg.Self = strconv.FormatInt(Self.ID(), 10)
+	formatMsg.Self = Self.NickName
 	if msg.IsSendByFriend() {
 		formatMsg.IsToMe = true
 		sender, _ := msg.Sender()
@@ -62,17 +62,7 @@ func receiveHandler(msg *openwechat.Message) {
 			logging.Logf(zerolog.ErrorLevel, "OpenWechat", "receiveHandler: Read picture error: %v", err)
 			return
 		}
-		mimeType := http.DetectContentType(img)
-		base64Encoding := ""
-		switch mimeType {
-		case "image/jpeg":
-			base64Encoding += "image/jpeg;base64,"
-			return
-		case "image/png":
-			base64Encoding += "image/png;base64,"
-			return
-		}
-		base64Encoding += base64.StdEncoding.EncodeToString(img)
+		base64Encoding := "base64://" + base64.StdEncoding.EncodeToString(img)
 		formatMsg.Image(base64Encoding)
 	} else if msg.IsLocation() {
 		// Cannot get location info from location message
@@ -191,7 +181,7 @@ func isURL(str string) bool {
 }
 
 func isBase64Img(str string) bool {
-	return strings.Contains(str, "image/jpeg;base64,") || strings.Contains(str, "image/png;base64,")
+	return strings.HasPrefix(str, "base64://")
 }
 
 func sendImageToFriend(friendNickName string, img message.ImageType) {
@@ -201,6 +191,10 @@ func sendImageToFriend(friendNickName string, img message.ImageType) {
 		return
 	}
 	friend := friends.SearchByNickName(1, friendNickName).First()
+	if friend == nil {
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToFriend: Friend %s not found.", friendNickName)
+		return
+	}
 	_, err = os.Stat(img.File)
 	if isURL(img.File) {
 		resp, err := http.Get(img.File)
@@ -211,18 +205,20 @@ func sendImageToFriend(friendNickName string, img message.ImageType) {
 		friend.SendImage(resp.Body)
 		resp.Body.Close()
 	} else if isBase64Img(img.File) {
+		img.File = strings.ReplaceAll(img.File, "base64://", "")
 		imgData, err := base64.StdEncoding.DecodeString(img.File)
 		if err != nil {
 			logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToFriend: Unable to decode base64 image: %s", err.Error())
 			return
 		}
+		image.Decode(bytes.NewReader(imgData))
 		friend.SendImage(bytes.NewReader(imgData))
 	} else if err == nil {
 		imgData, _ := os.Open(img.File)
 		friend.SendImage(imgData)
 		imgData.Close()
 	} else {
-		logging.Logf(zerolog.WarnLevel, "OpenWechat", "sendImageToFriend: Unknown image type: %s", img.File)
+		logging.Log(zerolog.WarnLevel, "OpenWechat", "sendImageToFriend: Unknown image type.")
 	}
 }
 
@@ -233,6 +229,10 @@ func sendImageToGroup(groupNickName string, img message.ImageType) {
 		return
 	}
 	group := groups.SearchByNickName(1, groupNickName).First()
+	if group == nil {
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToGroup: Group %s not found.", groupNickName)
+		return
+	}
 	_, err = os.Stat(img.File)
 	if isURL(img.File) {
 		resp, err := http.Get(img.File)
@@ -243,6 +243,7 @@ func sendImageToGroup(groupNickName string, img message.ImageType) {
 		group.SendImage(resp.Body)
 		resp.Body.Close()
 	} else if isBase64Img(img.File) {
+		img.File = strings.ReplaceAll(img.File, "base64://", "")
 		imgData, err := base64.StdEncoding.DecodeString(img.File)
 		if err != nil {
 			logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendImageToGroup: Unable to decode base64 image: %s", err.Error())
@@ -254,7 +255,7 @@ func sendImageToGroup(groupNickName string, img message.ImageType) {
 		group.SendImage(imgData)
 		imgData.Close()
 	} else {
-		logging.Logf(zerolog.WarnLevel, "OpenWechat", "sendImageToGroup: Unknown image type: %s", img.File)
+		logging.Log(zerolog.WarnLevel, "OpenWechat", "sendImageToGroup: Unknown image type.")
 	}
 }
 
@@ -265,6 +266,10 @@ func sendFileToFriend(friendNickName string, f message.FileType) {
 		return
 	}
 	friend := friends.SearchByNickName(1, friendNickName).First()
+	if friend == nil {
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToFriend: Friend %s not found.", friendNickName)
+		return
+	}
 	_, err = os.Stat(f.File)
 	if isURL(f.File) {
 		resp, err := http.Get(f.File)
@@ -290,6 +295,10 @@ func sendFileToGroup(groupNickName string, f message.FileType) {
 		return
 	}
 	group := groups.SearchByNickName(1, groupNickName).First()
+	if group == nil {
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendFileToGroup: Group %s not found.", groupNickName)
+		return
+	}
 	_, err = os.Stat(f.File)
 	if isURL(f.File) {
 		resp, err := http.Get(f.File)
@@ -314,7 +323,12 @@ func sendTextToFriend(friendNickName string, text string) {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToFriend: Unable to get friends: %s", err.Error())
 		return
 	}
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendTextToFriend: Text to friend %s: %s", friendNickName, text)
 	friend := friends.SearchByNickName(1, friendNickName).First()
+	if friend == nil {
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToFriend: Friend %s not found.", friendNickName)
+		return
+	}
 	friend.SendText(text)
 }
 
@@ -324,7 +338,12 @@ func sendTextToGroup(groupNickName string, text string) {
 		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToGroup: Unable to get groups: %s", err.Error())
 		return
 	}
+	logging.Logf(zerolog.InfoLevel, "OpenWechat", "sendTextToGroup: Text to group %s: %s", groupNickName, text)
 	group := groups.SearchByNickName(1, groupNickName).First()
+	if group == nil {
+		logging.Logf(zerolog.ErrorLevel, "OpenWechat", "sendTextToGroup: Group %s not found.", groupNickName)
+		return
+	}
 	group.SendText(text)
 }
 
@@ -336,13 +355,13 @@ func sendHandler() {
 		for _, segment := range msg.GetSegments() {
 			if segment.Type == "image" {
 				if msg.Group == "" {
-					sendImageToFriend(msg.Sender, segment.Data.(message.ImageType))
+					sendImageToFriend(msg.Receiver, segment.Data.(message.ImageType))
 				} else {
 					sendImageToGroup(msg.Group, segment.Data.(message.ImageType))
 				}
 			} else if segment.Type == "file" {
 				if msg.Group == "" {
-					sendFileToFriend(msg.Sender, segment.Data.(message.FileType))
+					sendFileToFriend(msg.Receiver, segment.Data.(message.FileType))
 				} else {
 					sendFileToGroup(msg.Group, segment.Data.(message.FileType))
 				}
@@ -353,7 +372,7 @@ func sendHandler() {
 		}
 		if hasText {
 			if msg.Group == "" {
-				sendTextToFriend(msg.Sender, text)
+				sendTextToFriend(msg.Receiver, text)
 			} else {
 				sendTextToGroup(msg.Group, text)
 			}

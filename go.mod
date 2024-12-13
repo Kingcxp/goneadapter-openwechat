@@ -4,11 +4,10 @@ go 1.22.7
 
 toolchain go1.22.10
 
-require github.com/gonebot-dev/gonebot v1.1.5
+require github.com/gonebot-dev/gonebot v1.1.6
 
 require (
 	github.com/eatmoreapple/openwechat v1.4.8
-	github.com/gonebot-dev/goneplugin-echo v0.1.1
 	github.com/gonebot-dev/goneplugin-status v0.1.1
 	github.com/rs/zerolog v1.33.0
 )
