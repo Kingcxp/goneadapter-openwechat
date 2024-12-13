@@ -11,7 +11,7 @@ var Emoji = openwechat.Emoji
 
 func init() {
 	OpenWechat.Name = "OpenWechat"
-	OpenWechat.Version = "v0.1.0"
+	OpenWechat.Version = "v0.1.1"
 	OpenWechat.Description = "The openwechat adapter for gonebot."
 	OpenWechat.Start = start
 	OpenWechat.Finalize = finalize
