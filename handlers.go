@@ -358,6 +358,30 @@ func sendTextToGroup(groupUserName string, text string) {
 	group.SendText(text)
 }
 
+func sendImage(receiver, group string, img message.ImageType) {
+	if group == "" {
+		sendImageToFriend(receiver, img)
+	} else {
+		sendImageToGroup(group, img)
+	}
+}
+
+func sendFile(receiver, group string, f message.FileType) {
+	if group == "" {
+		sendFileToFriend(receiver, f)
+	} else {
+		sendFileToGroup(group, f)
+	}
+}
+
+func sendText(receiver, group string, text string) {
+	if group == "" {
+		sendTextToFriend(receiver, text)
+	} else {
+		sendTextToGroup(group, text)
+	}
+}
+
 func sendHandler() {
 	for {
 		msg := OpenWechat.SendChannel.Pull()
@@ -365,28 +389,26 @@ func sendHandler() {
 		hasText := false
 		for _, segment := range msg.GetSegments() {
 			if segment.Type == "image" {
-				if msg.Group == "" {
-					sendImageToFriend(msg.Receiver, segment.Data.(message.ImageType))
-				} else {
-					sendImageToGroup(msg.Group, segment.Data.(message.ImageType))
+				if hasText {
+					sendText(msg.Receiver, msg.Group, text)
+					text = ""
+					hasText = false
 				}
+				sendImage(msg.Receiver, msg.Group, segment.Data.(message.ImageType))
 			} else if segment.Type == "file" {
-				if msg.Group == "" {
-					sendFileToFriend(msg.Receiver, segment.Data.(message.FileType))
-				} else {
-					sendFileToGroup(msg.Group, segment.Data.(message.FileType))
+				if hasText {
+					sendText(msg.Receiver, msg.Group, text)
+					text = ""
+					hasText = false
 				}
+				sendFile(msg.Receiver, msg.Group, segment.Data.(message.FileType))
 			} else if segment.Type == "text" {
 				hasText = true
 				text += segment.Data.(message.TextType).Text
 			}
 		}
 		if hasText {
-			if msg.Group == "" {
-				sendTextToFriend(msg.Receiver, text)
-			} else {
-				sendTextToGroup(msg.Group, text)
-			}
+			sendText(msg.Receiver, msg.Group, text)
 		}
 	}
 }
