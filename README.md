@@ -9,10 +9,10 @@
 	<p>✨ GoneBot adapter for wechat using openwechat ✨</p>
 </div>
 <div align="center">
-	<a href="https://github.com/gonebot-dev/gonebot/releases"><img src="https://img.shields.io/github/release/gonebot-dev/gonebot.svg" alt="Latest Release"></a>
-	<a href="https://pkg.go.dev/github.com/gonebot-dev/gonebot?tab=doc"><img src="https://godoc.org/github.com/gonebot-dev/gonebot?status.svg" alt="GoDoc"></a>
+	<a href="https://github.com/Kingcxp/goneadapter-openwechat/releases"><img src="https://img.shields.io/github/release/Kingcxp/goneadapter-openwechat.svg" alt="Latest Release"></a>
+	<a href="https://pkg.go.dev/github.com/Kingcxp/goneadapter-openwechat?tab=doc"><img src="https://godoc.org/github.com/Kingcxp/goneadapter-openwechat?status.svg" alt="GoDoc"></a>
 	<a href="https://github.com/tboox/tbox/blob/master/LICENSE.md">
-	  <img src="https://img.shields.io/github/license/gonebot-dev/gonebot.svg?colorB=f48041&style=flat-square" alt="license" />
+	  <img src="https://img.shields.io/github/license/Kingcxp/goneadapter-openwechat.svg?colorB=f48041&style=flat-square" alt="license" />
 	</a>
 </div>
 
