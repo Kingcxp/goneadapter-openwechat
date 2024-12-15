@@ -1,4 +1,4 @@
-module github.com/gonebot-dev/goneadapter-openwechat
+module github.com/Kingcxp/goneadapter-openwechat
 
 go 1.22.7
 
